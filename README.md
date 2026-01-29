@@ -1,305 +1,401 @@
-# Create a GitHub Action Using TypeScript
+# Changesets Publish Validator
 
-![Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)
-![CI](https://github.com/actions/typescript-action/actions/workflows/ci.yml/badge.svg)
-![Check dist/](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml/badge.svg)
-![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)
-![Coverage](./badges/coverage.svg)
+Validate npm publishing prerequisites for changesets workflows _before_
+publishing, with actionable error messages.
 
-Use this template to bootstrap the creation of a TypeScript action. :rocket:
+[![GitHub Super-Linter](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
+![CI](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/ci.yml/badge.svg)
+[![Check dist/](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/check-dist.yml/badge.svg)](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/codeql-analysis.yml)
 
-This template includes compilation support, tests, a validation workflow,
-publishing, and versioning guidance.
+## Why This Action?
 
-If you are new, there's also a simpler introduction in the
-[Hello world JavaScript action repository](https://github.com/actions/hello-world-javascript-action).
+When using [changesets/action](https://github.com/changesets/action) for npm
+publishing, configuration issues often result in cryptic error messages after
+waiting through your entire CI pipeline. This action validates your environment
+**upfront**, providing clear, actionable feedback.
 
-## Create Your Own Action
+### Real-World Problems This Solves
 
-To create your own action, you can use this repository as a template! Just
-follow the below instructions:
+Based on production experience at Adobe, this action catches these common
+issues:
 
-1. Click the **Use this template** button at the top of the repository
-1. Select **Create a new repository**
-1. Select an owner and name for your new repository
-1. Click **Create repository**
-1. Clone your new repository
+1. **npm version too old** - Many workflows use npm 10.x, which doesn't support
+   OIDC
+2. **Missing `id-token: write`** - Easy to forget this permission for OIDC
+3. **Conflicting auth** - Users accidentally leave `NPM_TOKEN` while trying OIDC
+4. **Incomplete setup** - Missing OIDC environment variables or invalid tokens
 
-> [!IMPORTANT]
->
-> Make sure to remove or update the [`CODEOWNERS`](./CODEOWNERS) file! For
-> details on how to use this file, see
-> [About code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+### Error Message Comparison
 
-## Initial Setup
+#### Without Validation (cryptic npm errors)
 
-After you've cloned the repository to your local machine or codespace, you'll
-need to perform some initial setup steps before you can develop your action.
-
-> [!NOTE]
->
-> You'll need to have a reasonably modern version of
-> [Node.js](https://nodejs.org) handy (20.x or later should work!). If you are
-> using a version manager like [`nodenv`](https://github.com/nodenv/nodenv) or
-> [`fnm`](https://github.com/Schniz/fnm), this template has a `.node-version`
-> file at the root of the repository that can be used to automatically switch to
-> the correct version when you `cd` into the repository. Additionally, this
-> `.node-version` file is used by GitHub Actions in any `actions/setup-node`
-> actions.
-
-1. :hammer_and_wrench: Install the dependencies
-
-   ```bash
-   npm install
-   ```
-
-1. :building_construction: Package the TypeScript for distribution
-
-   ```bash
-   npm run bundle
-   ```
-
-1. :white_check_mark: Run the tests
-
-   ```bash
-   $ npm test
-
-   PASS  ./index.test.js
-     ✓ throws invalid number (3ms)
-     ✓ wait 500 ms (504ms)
-     ✓ test runs (95ms)
-
-   ...
-   ```
-
-## Update the Action Metadata
-
-The [`action.yml`](action.yml) file defines metadata about your action, such as
-input(s) and output(s). For details about this file, see
-[Metadata syntax for GitHub Actions](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions).
-
-When you copy this repository, update `action.yml` with the name, description,
-inputs, and outputs for your action.
-
-## Update the Action Code
-
-The [`src/`](./src/) directory is the heart of your action! This contains the
-source code that will be run when your action is invoked. You can replace the
-contents of this directory with your own code.
-
-There are a few things to keep in mind when writing your action code:
-
-- Most GitHub Actions toolkit and CI/CD operations are processed asynchronously.
-  In `main.ts`, you will see that the action is run in an `async` function.
-
-  ```javascript
-  import * as core from '@actions/core'
-  //...
-
-  async function run() {
-    try {
-      //...
-    } catch (error) {
-      core.setFailed(error.message)
-    }
-  }
-  ```
-
-  For more information about the GitHub Actions toolkit, see the
-  [documentation](https://github.com/actions/toolkit/blob/main/README.md).
-
-So, what are you waiting for? Go ahead and start customizing your action!
-
-1. Create a new branch
-
-   ```bash
-   git checkout -b releases/v1
-   ```
-
-1. Replace the contents of `src/` with your action code
-1. Add tests to `__tests__/` for your source code
-1. Format, test, and build the action
-
-   ```bash
-   npm run all
-   ```
-
-   > This step is important! It will run [`rollup`](https://rollupjs.org/) to
-   > build the final JavaScript action code with all dependencies included. If
-   > you do not run this step, your action will not work correctly when it is
-   > used in a workflow.
-
-1. (Optional) Test your action locally
-
-   The [`@github/local-action`](https://github.com/github/local-action) utility
-   can be used to test your action locally. It is a simple command-line tool
-   that "stubs" (or simulates) the GitHub Actions Toolkit. This way, you can run
-   your TypeScript action locally without having to commit and push your changes
-   to a repository.
-
-   The `local-action` utility can be run in the following ways:
-   - Visual Studio Code Debugger
-
-     Make sure to review and, if needed, update
-     [`.vscode/launch.json`](./.vscode/launch.json)
-
-   - Terminal/Command Prompt
-
-     ```bash
-     # npx @github/local action <action-yaml-path> <entrypoint> <dotenv-file>
-     npx @github/local-action . src/main.ts .env
-     ```
-
-   You can provide a `.env` file to the `local-action` CLI to set environment
-   variables used by the GitHub Actions Toolkit. For example, setting inputs and
-   event payload data used by your action. For more information, see the example
-   file, [`.env.example`](./.env.example), and the
-   [GitHub Actions Documentation](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables).
-
-1. Commit your changes
-
-   ```bash
-   git add .
-   git commit -m "My first action is ready!"
-   ```
-
-1. Push them to your repository
-
-   ```bash
-   git push -u origin releases/v1
-   ```
-
-1. Create a pull request and get feedback on your action
-1. Merge the pull request into the `main` branch
-
-Your action is now published! :rocket:
-
-For information about versioning your action, see
-[Versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-## Validate the Action
-
-You can now validate the action by referencing it in a workflow file. For
-example, [`ci.yml`](./.github/workflows/ci.yml) demonstrates how to reference an
-action in the same repository.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: ./
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
+```
+npm error code ENEEDAUTH
+npm error need auth This command requires you to be logged in to https://registry.npmjs.org/
 ```
 
-For example workflow runs, check out the
-[Actions tab](https://github.com/actions/typescript-action/actions)! :rocket:
+#### With Validation (actionable guidance)
+
+```
+Error: npm version 10.8.1 detected. npm 11.5.1+ required for OIDC.
+Add step to your workflow:
+  - name: Update npm
+    run: npm install -g npm@latest
+```
 
 ## Usage
 
-After testing, you can create version tag(s) that developers can use to
-reference different stable versions of your action. For more information, see
-[Versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md)
-in the GitHub Actions toolkit.
+Run this action **before** `changesets/action` in your workflow to validate your
+publishing environment.
 
-To include the action in a workflow in another repository, you can use the
-`uses` syntax with the `@` symbol to reference a specific branch, tag, or commit
-hash.
+### OIDC Authentication (Recommended)
 
 ```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
+name: Release
 
-  - name: Test Local Action
-    id: test-action
-    uses: actions/typescript-action@v1 # Commit with the `v1` tag
-    with:
-      milliseconds: 1000
+on:
+  push:
+    branches:
+      - main
 
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write # Required for OIDC
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install -g npm@latest
+
+      - run: npm install
+
+      # Validate OIDC environment before proceeding
+      - name: Validate Publishing Prerequisites
+        uses: GarthDB/changesets-publish-validator@v1
+        with:
+          auth-method: oidc
+
+      - name: Create Release Pull Request or Publish
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No NPM_TOKEN needed with OIDC!
 ```
 
-## Publishing a New Release
+### Token-Based Authentication (Legacy)
 
-This project includes a helper script, [`script/release`](./script/release)
-designed to streamline the process of tagging and pushing new releases for
-GitHub Actions.
+```yaml
+name: Release
 
-GitHub Actions allows users to select a specific version of the action to use,
-based on release tags. This script simplifies this process by performing the
-following steps:
+on:
+  push:
+    branches:
+      - main
 
-1. **Retrieving the latest release tag:** The script starts by fetching the most
-   recent SemVer release tag of the current branch, by looking at the local data
-   available in your repository.
-1. **Prompting for a new release tag:** The user is then prompted to enter a new
-   release tag. To assist with this, the script displays the tag retrieved in
-   the previous step, and validates the format of the inputted tag (vX.X.X). The
-   user is also reminded to update the version field in package.json.
-1. **Tagging the new release:** The script then tags a new release and syncs the
-   separate major tag (e.g. v1, v2) with the new release tag (e.g. v1.0.0,
-   v2.1.2). When the user is creating a new major release, the script
-   auto-detects this and creates a `releases/v#` branch for the previous major
-   version.
-1. **Pushing changes to remote:** Finally, the script pushes the necessary
-   commits, tags and branches to the remote repository. From here, you will need
-   to create a new release in GitHub so users can easily reference the new tags
-   in their workflows.
+permissions:
+  contents: write
+  pull-requests: write
 
-## Dependency License Management
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-This template includes a GitHub Actions workflow,
-[`licensed.yml`](./.github/workflows/licensed.yml), that uses
-[Licensed](https://github.com/licensee/licensed) to check for dependencies with
-missing or non-compliant licenses. This workflow is initially disabled. To
-enable the workflow, follow the below steps.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-1. Open [`licensed.yml`](./.github/workflows/licensed.yml)
-1. Uncomment the following lines:
+      - run: npm install
+
+      # Validate token before proceeding
+      - name: Validate Publishing Prerequisites
+        uses: GarthDB/changesets-publish-validator@v1
+        with:
+          auth-method: token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release Pull Request or Publish
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+## Inputs
+
+| Input           | Description                                       | Required | Default |
+| --------------- | ------------------------------------------------- | -------- | ------- |
+| `auth-method`   | Authentication method: `"oidc"` or `"token"`      | Yes      | -       |
+| `fail-on-error` | Whether to fail the workflow on validation errors | No       | `true`  |
+| `debug`         | Enable debug output with full environment info    | No       | `false` |
+
+## Outputs
+
+| Output  | Description                                       |
+| ------- | ------------------------------------------------- |
+| `valid` | Whether validation passed (`"true"` or `"false"`) |
+
+## Validation Checks
+
+### OIDC Mode (`auth-method: oidc`)
+
+✅ **npm version** - Ensures npm >= 11.5.1 (required for OIDC support)  
+✅ **id-token permission** - Verifies `ACTIONS_ID_TOKEN_REQUEST_URL` is set  
+✅ **OIDC tokens** - Checks `ACTIONS_ID_TOKEN_REQUEST_TOKEN` is available  
+✅ **No conflicts** - Ensures `NPM_TOKEN` is not set  
+⚠️ **`.npmrc` conflicts** - Warns about existing auth tokens
+
+### Token Mode (`auth-method: token`)
+
+✅ **NPM_TOKEN presence** - Ensures token is set and non-empty  
+✅ **Token format** - Validates token has reasonable length  
+⚠️ **Token prefix** - Warns if token doesn't start with `npm_`  
+⚠️ **OIDC availability** - Suggests OIDC if `id-token` permission detected  
+⚠️ **`.npmrc` config** - Checks for existing configuration
+
+### Common Checks (Both Modes)
+
+✅ **Changesets config** - Verifies `.changeset/config.json` exists  
+✅ **package.json** - Checks for publish/release script  
+⚠️ **Node.js version** - Warns if < 18
+
+## Debug Mode
+
+Enable debug mode to troubleshoot validation issues:
+
+```yaml
+- name: Validate Publishing Prerequisites
+  uses: GarthDB/changesets-publish-validator@v1
+  with:
+    auth-method: oidc
+    debug: true
+```
+
+Debug output includes:
+
+- Node.js and npm versions
+- npm configuration
+- Environment variables (redacted)
+- `.npmrc` contents (redacted)
+- Changesets configuration
+- package.json scripts
+
+## Advanced Usage
+
+### Advisory Mode
+
+Set `fail-on-error: false` to run validation as an advisory check without
+failing the workflow:
+
+```yaml
+- name: Validate Publishing Prerequisites (Advisory)
+  uses: GarthDB/changesets-publish-validator@v1
+  with:
+    auth-method: oidc
+    fail-on-error: false
+  continue-on-error: true
+```
+
+### Use Output in Conditional Steps
+
+```yaml
+- name: Validate Publishing Prerequisites
+  id: validate
+  uses: GarthDB/changesets-publish-validator@v1
+  with:
+    auth-method: oidc
+    fail-on-error: false
+
+- name: Proceed with Publishing
+  if: steps.validate.outputs.valid == 'true'
+  uses: changesets/action@v1
+  with:
+    publish: npm run release
+```
+
+## Migration from NPM_TOKEN to OIDC
+
+### Prerequisites
+
+1. **npm CLI 11.5.1+** - Update in your workflow:
 
    ```yaml
-   # pull_request:
-   #   branches:
-   #     - main
-   # push:
-   #   branches:
-   #     - main
+   - run: npm install -g npm@latest
    ```
 
-1. Save and commit the changes
+2. **Configure Trusted Publisher** on [npmjs.com](https://www.npmjs.com/):
+   - Go to your organization/package settings
+   - Navigate to "Publishing Access"
+   - Add a trusted publisher with:
+     - Subject Type: GitHub Actions
+     - Organization: `your-org`
+     - Repository: `your-repo`
+     - Workflow File: `release.yml` (or your workflow filename)
 
-Once complete, this workflow will run any time a pull request is created or
-changes pushed directly to `main`. If the workflow detects any dependencies with
-missing or non-compliant licenses, it will fail the workflow and provide details
-on the issue(s) found.
+3. **Add `id-token: write` permission** to your workflow:
+   ```yaml
+   permissions:
+     contents: write
+     pull-requests: write
+     id-token: write
+   ```
 
-### Updating Licenses
+### Migration Steps
 
-Whenever you install or update dependencies, you can use the Licensed CLI to
-update the licenses database. To install Licensed, see the project's
-[Readme](https://github.com/licensee/licensed?tab=readme-ov-file#installation).
+1. Add npm update step to your workflow
+2. Configure trusted publisher on npmjs.com
+3. Add `id-token: write` permission
+4. Change `auth-method` from `token` to `oidc` in this action
+5. Remove `NPM_TOKEN` from your workflow env
+6. (Optional) Delete `NPM_TOKEN` secret from GitHub
 
-To update the cached licenses, run the following command:
+### Benefits of OIDC
 
-```bash
-licensed cache
+- ✅ No long-lived tokens to manage or rotate
+- ✅ Cryptographic provenance attestation automatically generated
+- ✅ More secure authentication flow
+- ✅ Eliminates risk of token leakage
+
+## Error Reference
+
+### Common Errors and Solutions
+
+<details>
+<summary><code>npm version X detected. npm 11.5.1+ required for OIDC</code></summary>
+
+**Cause:** Your workflow is using an older version of npm that doesn't support
+OIDC.
+
+**Solution:** Add an npm update step before publishing:
+
+```yaml
+- name: Update npm
+  run: npm install -g npm@latest
 ```
 
-To check the status of cached licenses, run the following command:
+</details>
+
+<details>
+<summary><code>id-token: write permission not detected</code></summary>
+
+**Cause:** Your workflow doesn't have the required permission for OIDC.
+
+**Solution:** Add `id-token: write` to your workflow permissions:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+```
+
+</details>
+
+<details>
+<summary><code>NPM_TOKEN is set but auth-method is "oidc"</code></summary>
+
+**Cause:** You have both OIDC and token auth configured, causing a conflict.
+
+**Solution:** Remove `NPM_TOKEN` from your workflow's `env` section, or switch
+to `auth-method: token`.
+
+</details>
+
+<details>
+<summary><code>NPM_TOKEN environment variable is not set</code></summary>
+
+**Cause:** Token-based auth requires an `NPM_TOKEN` secret.
+
+**Solution:** Either:
+
+1. Add `NPM_TOKEN` to your workflow and GitHub secrets, or
+2. Switch to OIDC: `auth-method: oidc`
+</details>
+
+<details>
+<summary><code>Changesets configuration not found</code></summary>
+
+**Cause:** No `.changeset/config.json` file in your repository.
+
+**Solution:** Initialize changesets:
 
 ```bash
-licensed status
+npx @changesets/cli init
 ```
+
+</details>
+
+## Development
+
+### Prerequisites
+
+- Node.js 20+ (see `.node-version`)
+- npm 10+
+
+### Setup
+
+```bash
+npm install
+```
+
+### Testing
+
+```bash
+npm test              # Run tests
+npm run ci-test       # Run tests in CI mode
+npm run coverage      # Generate coverage badge
+```
+
+### Building
+
+```bash
+npm run bundle        # Format, package, and bundle
+npm run all           # Format, lint, test, coverage, and package
+```
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for your changes
+4. Ensure all tests pass: `npm run all`
+5. Submit a pull request
+
+## License
+
+[MIT](LICENSE)
+
+## Related Projects
+
+- [changesets/action](https://github.com/changesets/action) - The official
+  changesets GitHub Action
+- [changesets/changesets](https://github.com/changesets/changesets) - A way to
+  manage versioning and changelogs
+- [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) - Official
+  npm OIDC documentation
+
+## Acknowledgments
+
+- Inspired by [PR #562](https://github.com/changesets/action/pull/562) to
+  changesets/action
+- Built with the
+  [actions/typescript-action](https://github.com/actions/typescript-action)
+  template
+- Validation logic based on production experience at Adobe

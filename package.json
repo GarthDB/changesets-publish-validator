@@ -1,26 +1,31 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
+  "name": "changesets-publish-validator",
+  "description": "Validate npm publishing prerequisites for changesets workflows (OIDC or token-based)",
+  "version": "1.0.0",
+  "author": "GarthDB",
   "type": "module",
   "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/GarthDB/changesets-publish-validator",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/GarthDB/changesets-publish-validator.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/GarthDB/changesets-publish-validator/issues"
   },
   "keywords": [
-    "actions"
+    "actions",
+    "changesets",
+    "npm",
+    "oidc",
+    "publishing",
+    "validation"
   ],
   "exports": {
     ".": "./dist/index.js"
   },
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "bundle": "npm run format:write && npm run package",
@@ -37,7 +42,9 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1"
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^1.1.1",
+    "semver": "^7.6.0"
   },
   "devDependencies": {
     "@eslint/compat": "^1.4.0",
@@ -48,6 +55,7 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
+    "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.32.1",
     "eslint": "^9.39.2",

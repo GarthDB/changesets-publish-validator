@@ -44,8 +44,8 @@ jobs:
         id: npm-ci-test
         run: npm run ci-test
 
-  test-action:
-    name: GitHub Actions Test
+  test-action-token:
+    name: Test Action (Token Mode)
     runs-on: ubuntu-latest
 
     steps:
@@ -53,12 +53,27 @@ jobs:
         id: checkout
         uses: actions/checkout@v6
 
-      - name: Test Local Action
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Bundle Action
+        run: npm run bundle
+
+      - name: Test Token Validation
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          auth-method: token
+        env:
+          NPM_TOKEN: npm_test-token-1234567890
 
-      - name: Print Output
+      - name: Print Result
         id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+        run: |
+          echo "Validation result: ${{ steps.test-action.outputs.valid }}"

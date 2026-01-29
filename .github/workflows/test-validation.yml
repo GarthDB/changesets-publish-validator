@@ -1,0 +1,232 @@
+name: Test Validation Scenarios
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scenario:
+        description: 'Test scenario'
+        required: true
+        type: choice
+        options:
+          - 'oidc-valid'
+          - 'oidc-missing-permission'
+          - 'oidc-old-npm'
+          - 'oidc-conflict'
+          - 'token-valid'
+          - 'token-missing'
+
+permissions:
+  contents: read
+
+jobs:
+  test-oidc-valid:
+    name: OIDC - Valid Configuration
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    if: github.event.inputs.test_scenario == 'oidc-valid'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run bundle
+
+      - name: Test OIDC validation (should pass)
+        uses: ./
+        with:
+          auth-method: oidc
+
+  test-oidc-missing-permission:
+    name: OIDC - Missing id-token Permission
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # No id-token permission
+    if: github.event.inputs.test_scenario == 'oidc-missing-permission'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run bundle
+
+      - name: Test missing permission (should fail)
+        id: validation
+        uses: ./
+        with:
+          auth-method: oidc
+          fail-on-error: false
+
+      - name: Verify failure
+        if: steps.validation.outputs.valid == 'true'
+        run: |
+          echo "Expected validation to fail but it passed"
+          exit 1
+
+  test-oidc-old-npm:
+    name: OIDC - Old npm Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    if: github.event.inputs.test_scenario == 'oidc-old-npm'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Don't update npm - use the version that comes with Node
+
+      - name: Check npm version
+        run: npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run bundle
+
+      - name: Test old npm version (should fail)
+        id: validation
+        uses: ./
+        with:
+          auth-method: oidc
+          fail-on-error: false
+
+      - name: Verify failure
+        if: steps.validation.outputs.valid == 'true'
+        run: |
+          echo "Expected validation to fail but it passed"
+          exit 1
+
+  test-oidc-conflict:
+    name: OIDC - Conflicting NPM_TOKEN
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    if: github.event.inputs.test_scenario == 'oidc-conflict'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run bundle
+
+      - name: Test conflicting auth (should fail)
+        id: validation
+        uses: ./
+        with:
+          auth-method: oidc
+          fail-on-error: false
+        env:
+          NPM_TOKEN: dummy-conflicting-token
+
+      - name: Verify failure
+        if: steps.validation.outputs.valid == 'true'
+        run: |
+          echo "Expected validation to fail but it passed"
+          exit 1
+
+  test-token-valid:
+    name: Token - Valid Configuration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_scenario == 'token-valid'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run bundle
+
+      - name: Test token validation (should pass)
+        uses: ./
+        with:
+          auth-method: token
+        env:
+          NPM_TOKEN: npm_dummy-token-for-testing-1234567890
+
+  test-token-missing:
+    name: Token - Missing NPM_TOKEN
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_scenario == 'token-missing'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run bundle
+
+      - name: Test missing token (should fail)
+        id: validation
+        uses: ./
+        with:
+          auth-method: token
+          fail-on-error: false
+
+      - name: Verify failure
+        if: steps.validation.outputs.valid == 'true'
+        run: |
+          echo "Expected validation to fail but it passed"
+          exit 1

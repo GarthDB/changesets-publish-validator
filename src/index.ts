@@ -1,8 +1,7 @@
 /**
- * The entrypoint for the action. This file simply imports and runs the action's
- * main logic.
+ * The entrypoint for the action.
  */
 import { run } from './main.js'
 
-/* istanbul ignore next */
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 run()
