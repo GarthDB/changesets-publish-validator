@@ -41,8 +41,17 @@
     "release:tag": "echo 'No npm publish needed for GitHub Action'",
     "test": "npx ava",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package",
-    "pre-commit": "npm run format:check && npm run lint",
+    "pre-commit": "lint-staged",
     "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,mjs,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,yml,yaml,md}": [
+      "prettier --write"
+    ]
   },
   "license": "MIT",
   "dependencies": {
@@ -71,6 +80,7 @@
     "eslint-plugin-prettier": "^5.5.5",
     "esmock": "^2.7.3",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "make-coverage-badge": "^1.2.0",
     "prettier": "^3.8.1",
     "prettier-eslint": "^16.4.2",
