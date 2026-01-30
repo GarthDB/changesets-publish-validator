@@ -19,15 +19,22 @@ MD030:
   ul_multi: 1
   ol_multi: 1
 
-# Allow inline HTML for details/summary/code elements
+# Allow inline HTML for details/summary/code/br elements
 MD033:
   allowed_elements:
     - details
     - summary
     - code
+    - br
 
 # Code block language - disabled to allow language-less blocks
 MD040: false
+
+# Bare URLs - disabled to allow URLs without angle brackets
+MD034: false
+
+# Spaces inside code spans - disabled
+MD038: false
 
 # Fenced code blocks surrounded by blank lines - disabled
 MD031: false

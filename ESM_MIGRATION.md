@@ -10,10 +10,10 @@ change** as the package is now ESM-only.
 ### Code Changes
 
 1. ✅ Updated `package.json` dependency to `@actions/core@^3.0.0`
-1. ✅ Rebuilt `dist/` folder with updated dependencies
-1. ✅ Fixed bug in token validator: distinguishes between undefined and empty
+2. ✅ Rebuilt `dist/` folder with updated dependencies
+3. ✅ Fixed bug in token validator: distinguishes between undefined and empty
    string for `NPM_TOKEN`
-1. ✅ Created ESM-compatible manual mocks for:
+4. ✅ Created ESM-compatible manual mocks for:
    - `@actions/core`
    - `@actions/exec`
    - `fs/promises`
@@ -21,10 +21,10 @@ change** as the package is now ESM-only.
 ### Test Updates
 
 1. ✅ Removed `jest.spyOn()` calls which don't work with ESM modules
-1. ✅ Updated test imports to use manual mocks directly
-1. ✅ Fixed Jest configuration for ESM (`transformIgnorePatterns`)
-1. ✅ Token validator tests: **8/8 passing** ✓
-1. ✅ Wait tests: **2/2 passing** ✓
+2. ✅ Updated test imports to use manual mocks directly
+3. ✅ Fixed Jest configuration for ESM (`transformIgnorePatterns`)
+4. ✅ Token validator tests: **8/8 passing** ✓
+5. ✅ Wait tests: **2/2 passing** ✓
 
 ## Remaining Issues
 
@@ -45,17 +45,17 @@ The issue is that `jest.fn()` in manual mocks doesn't get the mock methods
 ### Potential Solutions
 
 1. **Wait for Jest v31+** with better ESM support
-1. **Migrate to Vitest** which has first-class ESM support
-1. **Use `jest.unstable_mockModule()`** (experimental API)
-1. **Refactor tests** to not require mock setup (integration-style tests)
+2. **Migrate to Vitest** which has first-class ESM support
+3. **Use `jest.unstable_mockModule()`** (experimental API)
+4. **Refactor tests** to not require mock setup (integration-style tests)
 
 ## Testing the PR
 
 While unit tests have issues, the **actual code works correctly**:
 
-- The `dist/` folder is properly built
-- The action will work in CI/CD workflows
-- The validator logic is sound (token tests prove this)
+1. The `dist/` folder is properly built
+2. The action will work in CI/CD workflows
+3. The validator logic is sound (token tests prove this)
 
 The test failures are purely infrastructure issues, not code bugs.
 
