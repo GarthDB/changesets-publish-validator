@@ -6,7 +6,7 @@
 import test, { type ExecutionContext } from 'ava'
 import esmock from 'esmock'
 
-test.serial('validateOidc passes validation with correct setup', async (t) => {
+test.serial('validateOidc passes validation with correct setup', async (t: ExecutionContext) => {
   const { validateOidc } = await esmock(
     '../../src/validators/oidc.js',
     {},
@@ -33,7 +33,7 @@ test.serial('validateOidc passes validation with correct setup', async (t) => {
 
 test.serial(
   'validateOidc returns error for npm version < 11.5.1',
-  async (t) => {
+  async (t: ExecutionContext) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -64,7 +64,7 @@ test.serial(
 
 test.serial(
   'validateOidc returns error for npm version 11.5.0 (edge case)',
-  async (t) => {
+  async (t: ExecutionContext) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -92,7 +92,7 @@ test.serial(
 
 test.serial(
   'validateOidc passes validation for npm 11.5.1 exactly',
-  async (t) => {
+  async (t: ExecutionContext) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -120,7 +120,7 @@ test.serial(
 
 test.serial(
   'validateOidc handles npm version with leading/trailing whitespace',
-  async (t) => {
+  async (t: ExecutionContext) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -148,7 +148,7 @@ test.serial(
 
 test.serial(
   'validateOidc collects multiple errors when multiple checks fail',
-  async (t) => {
+  async (t: ExecutionContext) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},

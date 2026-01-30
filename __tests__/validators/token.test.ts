@@ -13,7 +13,7 @@ test.beforeEach(() => {
 
 test.serial(
   'validateToken passes validation with valid NPM_TOKEN',
-  async (t) => {
+  async (t: ExecutionContext) => {
     process.env.NPM_TOKEN = 'npm_validtoken1234567890'
     delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
 
@@ -26,7 +26,7 @@ test.serial(
 
 test.serial(
   'validateToken returns error when NPM_TOKEN is missing',
-  async (t) => {
+  async (t: ExecutionContext) => {
     delete process.env.NPM_TOKEN
 
     const result = await validateToken()
@@ -42,7 +42,7 @@ test.serial(
 
 test.serial(
   'validateToken returns error when NPM_TOKEN is empty',
-  async (t) => {
+  async (t: ExecutionContext) => {
     process.env.NPM_TOKEN = ''
 
     const result = await validateToken()
@@ -54,7 +54,7 @@ test.serial(
 
 test.serial(
   'validateToken returns error when NPM_TOKEN is too short',
-  async (t) => {
+  async (t: ExecutionContext) => {
     process.env.NPM_TOKEN = 'short'
 
     const result = await validateToken()
@@ -68,7 +68,7 @@ test.serial(
 
 test.serial(
   'validateToken returns warning when NPM_TOKEN does not start with npm_ prefix',
-  async (t) => {
+  async (t: ExecutionContext) => {
     process.env.NPM_TOKEN = 'legacy-token-1234567890'
 
     const result = await validateToken()
@@ -81,7 +81,7 @@ test.serial(
 
 test.serial(
   'validateToken returns warning when OIDC is available but using token',
-  async (t) => {
+  async (t: ExecutionContext) => {
     process.env.NPM_TOKEN = 'npm_validtoken1234567890'
     process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
 
@@ -96,7 +96,7 @@ test.serial(
 
 test.serial(
   'validateToken handles whitespace-only token as empty',
-  async (t) => {
+  async (t: ExecutionContext) => {
     process.env.NPM_TOKEN = '   \n\t  '
 
     const result = await validateToken()
@@ -106,7 +106,7 @@ test.serial(
   }
 )
 
-test.serial('validateToken accepts valid modern npm token', async (t) => {
+test.serial('validateToken accepts valid modern npm token', async (t: ExecutionContext) => {
   process.env.NPM_TOKEN = 'npm_1234567890abcdefghijklmnopqrstuvwxyz'
   delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
 

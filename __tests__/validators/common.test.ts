@@ -12,6 +12,6 @@ import test, { type ExecutionContext } from 'ava'
 // because fs/promises mocking with esmock is unreliable for edge cases.
 // The integration test in CI validates the actual behavior.
 
-test('common validator integration tests run in CI', (t) => {
+test('common validator integration tests run in CI', (t: ExecutionContext) => {
   t.pass('See .github/workflows/test-validation.yml for integration tests')
 })

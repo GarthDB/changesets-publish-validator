@@ -12,7 +12,7 @@ test.beforeEach(() => {
   delete process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
 })
 
-test.serial('main passes with valid OIDC environment', async (t) => {
+test.serial('main passes with valid OIDC environment', async (t: ExecutionContext) => {
   const { run } = await esmock(
     '../src/main.js',
     {},
@@ -59,7 +59,7 @@ test.serial('main passes with valid OIDC environment', async (t) => {
   t.pass()
 })
 
-test.serial('main passes with valid NPM_TOKEN', async (t) => {
+test.serial('main passes with valid NPM_TOKEN', async (t: ExecutionContext) => {
   const { run } = await esmock(
     '../src/main.js',
     {},
