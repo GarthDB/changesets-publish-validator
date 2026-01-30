@@ -22,7 +22,7 @@ export async function validateToken(): Promise<ValidationResult> {
   // Check NPM_TOKEN presence
   const npmToken = process.env.NPM_TOKEN
 
-  if (!npmToken) {
+  if (npmToken === undefined) {
     errors.push(
       `NPM_TOKEN environment variable is not set.\n` +
         `Add to your workflow:\n` +

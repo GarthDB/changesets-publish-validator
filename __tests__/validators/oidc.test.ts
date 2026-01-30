@@ -24,9 +24,6 @@ describe('OIDC validation', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env = { ...originalEnv }
-    // Mock core.info to suppress logs in tests
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -35,7 +32,7 @@ describe('OIDC validation', () => {
 
   describe('validateOidc', () => {
     it('passes validation with correct setup', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '11.6.2',
         stderr: '',
         exitCode: 0
@@ -51,7 +48,7 @@ describe('OIDC validation', () => {
     })
 
     it('returns error for npm version < 11.5.1', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '10.8.1',
         stderr: '',
         exitCode: 0
@@ -70,7 +67,7 @@ describe('OIDC validation', () => {
     })
 
     it('returns error for npm version 11.5.0 (edge case)', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '11.5.0',
         stderr: '',
         exitCode: 0
@@ -86,7 +83,7 @@ describe('OIDC validation', () => {
     })
 
     it('passes validation for npm 11.5.1 exactly', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '11.5.1',
         stderr: '',
         exitCode: 0
@@ -102,7 +99,7 @@ describe('OIDC validation', () => {
     })
 
     it('returns error for missing id-token permission', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '11.6.2',
         stderr: '',
         exitCode: 0
@@ -122,7 +119,7 @@ describe('OIDC validation', () => {
     })
 
     it('returns error when NPM_TOKEN is set', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '11.6.2',
         stderr: '',
         exitCode: 0
@@ -142,7 +139,7 @@ describe('OIDC validation', () => {
     })
 
     it('returns error when OIDC token request variable is missing', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '11.6.2',
         stderr: '',
         exitCode: 0
@@ -160,7 +157,7 @@ describe('OIDC validation', () => {
     })
 
     it('handles npm version with leading/trailing whitespace', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '  11.6.2\n',
         stderr: '',
         exitCode: 0
@@ -176,9 +173,7 @@ describe('OIDC validation', () => {
     })
 
     it('returns error when npm command fails', async () => {
-      jest
-        .mocked(getExecOutput)
-        .mockRejectedValue(new Error('npm command not found'))
+      getExecOutput.mockRejectedValue(new Error('npm command not found'))
       process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
       process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
       delete process.env.NPM_TOKEN
@@ -192,7 +187,7 @@ describe('OIDC validation', () => {
     })
 
     it('collects multiple errors when multiple checks fail', async () => {
-      jest.mocked(getExecOutput).mockResolvedValue({
+      getExecOutput.mockResolvedValue({
         stdout: '10.0.0',
         stderr: '',
         exitCode: 0

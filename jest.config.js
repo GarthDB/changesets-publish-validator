@@ -36,5 +36,6 @@ export default {
       }
     ]
   },
+  transformIgnorePatterns: ['node_modules/(?!(@actions)/)'],
   verbose: true
 }

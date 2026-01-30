@@ -12,10 +12,12 @@ import {
 } from '@jest/globals'
 import * as core from '@actions/core'
 import { validateCommon } from '../../src/validators/common'
-import fs from 'fs/promises'
+import * as fsPromises from 'fs/promises'
 
 jest.mock('@actions/core')
 jest.mock('fs/promises')
+
+const { access, readFile } = jest.mocked(fsPromises)
 
 describe('Common validation', () => {
   const originalEnv = process.env
@@ -23,9 +25,6 @@ describe('Common validation', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env = { ...originalEnv }
-    // Mock core.info to suppress logs in tests
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -35,8 +34,8 @@ describe('Common validation', () => {
   describe('validateCommon', () => {
     it('passes validation when all files exist', async () => {
       // Mock file access - both files exist
-      jest.mocked(fs.access).mockResolvedValue(undefined)
-      jest.mocked(fs.readFile).mockResolvedValue(
+      access.mockResolvedValue(undefined)
+      readFile.mockResolvedValue(
         JSON.stringify({
           scripts: {
             release: 'changeset publish'
@@ -52,12 +51,11 @@ describe('Common validation', () => {
 
     it('returns error when .changeset/config.json is missing', async () => {
       // Mock: .changeset/config.json does not exist, but package.json does
-      jest
-        .mocked(fs.access)
+      access
         .mockImplementationOnce(() => Promise.reject(new Error('Not found')))
         .mockResolvedValueOnce(undefined)
 
-      jest.mocked(fs.readFile).mockResolvedValue(
+      readFile.mockResolvedValue(
         JSON.stringify({
           scripts: { release: 'changeset publish' }
         })
@@ -78,8 +76,7 @@ describe('Common validation', () => {
 
     it('returns error when package.json is missing', async () => {
       // Mock: .changeset/config.json exists but package.json does not
-      jest
-        .mocked(fs.access)
+      access
         .mockResolvedValueOnce(undefined)
         .mockImplementationOnce(() => Promise.reject(new Error('Not found')))
 
@@ -92,8 +89,8 @@ describe('Common validation', () => {
     })
 
     it('returns warning when no publish/release script found', async () => {
-      jest.mocked(fs.access).mockResolvedValue(undefined)
-      jest.mocked(fs.readFile).mockResolvedValue(
+      access.mockResolvedValue(undefined)
+      readFile.mockResolvedValue(
         JSON.stringify({
           scripts: {
             test: 'jest'
@@ -112,8 +109,8 @@ describe('Common validation', () => {
     })
 
     it('accepts release script', async () => {
-      jest.mocked(fs.access).mockResolvedValue(undefined)
-      jest.mocked(fs.readFile).mockResolvedValue(
+      access.mockResolvedValue(undefined)
+      readFile.mockResolvedValue(
         JSON.stringify({
           scripts: {
             release: 'changeset publish'
@@ -128,8 +125,8 @@ describe('Common validation', () => {
     })
 
     it('accepts publish script', async () => {
-      jest.mocked(fs.access).mockResolvedValue(undefined)
-      jest.mocked(fs.readFile).mockResolvedValue(
+      access.mockResolvedValue(undefined)
+      readFile.mockResolvedValue(
         JSON.stringify({
           scripts: {
             publish: 'npm publish'
@@ -144,8 +141,8 @@ describe('Common validation', () => {
     })
 
     it('returns warning for old Node.js version', async () => {
-      jest.mocked(fs.access).mockResolvedValue(undefined)
-      jest.mocked(fs.readFile).mockResolvedValue(
+      access.mockResolvedValue(undefined)
+      readFile.mockResolvedValue(
         JSON.stringify({
           scripts: { release: 'changeset publish' }
         })
@@ -177,8 +174,8 @@ describe('Common validation', () => {
     })
 
     it('handles package.json parsing error', async () => {
-      jest.mocked(fs.access).mockResolvedValue(undefined)
-      jest.mocked(fs.readFile).mockResolvedValue('invalid json {')
+      access.mockResolvedValue(undefined)
+      readFile.mockResolvedValue('invalid json {')
 
       const result = await validateCommon()
 
@@ -190,7 +187,7 @@ describe('Common validation', () => {
 
     it('collects multiple errors when multiple files are missing', async () => {
       // Both files missing
-      jest.mocked(fs.access).mockRejectedValue(new Error('Not found'))
+      access.mockRejectedValue(new Error('Not found'))
 
       const result = await validateCommon()
 

@@ -21,9 +21,6 @@ describe('Token validation', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env = { ...originalEnv }
-    // Mock core.info to suppress logs in tests
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
   })
 
   afterEach(() => {

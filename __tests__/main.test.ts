@@ -17,7 +17,16 @@ import * as fs from 'fs/promises'
 
 jest.mock('@actions/core')
 jest.mock('@actions/exec')
-jest.mock('fs/promises')
+jest.mock('fs/promises', () => ({
+  access: jest.fn(),
+  readFile: jest.fn(),
+  writeFile: jest.fn(),
+  mkdir: jest.fn(),
+  rmdir: jest.fn(),
+  unlink: jest.fn(),
+  stat: jest.fn(),
+  readdir: jest.fn()
+}))
 
 describe('Main action', () => {
   const originalEnv = process.env
@@ -26,19 +35,9 @@ describe('Main action', () => {
     jest.clearAllMocks()
     process.env = { ...originalEnv }
 
-    // Mock core functions
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
-    jest.spyOn(core, 'error').mockImplementation(() => {})
-    jest.spyOn(core, 'startGroup').mockImplementation(() => {})
-    jest.spyOn(core, 'endGroup').mockImplementation(() => {})
-    jest.spyOn(core, 'setOutput').mockImplementation(() => {})
-    jest.spyOn(core, 'setFailed').mockImplementation(() => {})
-
     // Mock common file checks
-    jest.mocked(fs.access).mockResolvedValue(undefined)
-    jest.mocked(fs.readFile).mockResolvedValue(
+    fs.access.mockResolvedValue(undefined)
+    fs.readFile.mockResolvedValue(
       JSON.stringify({
         scripts: { release: 'changeset publish' }
       })
@@ -51,11 +50,11 @@ describe('Main action', () => {
 
   describe('OIDC mode', () => {
     beforeEach(() => {
-      jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+      core.getInput.mockImplementation((name: string) => {
         if (name === 'auth-method') return 'oidc'
         return ''
       })
-      jest.spyOn(core, 'getBooleanInput').mockImplementation((name: string) => {
+      core.getBooleanInput.mockImplementation((name: string) => {
         if (name === 'fail-on-error') return true
         if (name === 'debug') return false
         return false
@@ -112,11 +111,11 @@ describe('Main action', () => {
 
   describe('Token mode', () => {
     beforeEach(() => {
-      jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+      core.getInput.mockImplementation((name: string) => {
         if (name === 'auth-method') return 'token'
         return ''
       })
-      jest.spyOn(core, 'getBooleanInput').mockImplementation((name: string) => {
+      core.getBooleanInput.mockImplementation((name: string) => {
         if (name === 'fail-on-error') return true
         if (name === 'debug') return false
         return false
@@ -145,11 +144,11 @@ describe('Main action', () => {
 
   describe('Invalid auth-method', () => {
     it('fails with invalid auth-method', async () => {
-      jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+      core.getInput.mockImplementation((name: string) => {
         if (name === 'auth-method') return 'invalid'
         return ''
       })
-      jest.spyOn(core, 'getBooleanInput').mockReturnValue(true)
+      core.getBooleanInput.mockReturnValue(true)
 
       await run()
 
@@ -161,14 +160,14 @@ describe('Main action', () => {
 
   describe('fail-on-error option', () => {
     beforeEach(() => {
-      jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+      core.getInput.mockImplementation((name: string) => {
         if (name === 'auth-method') return 'token'
         return ''
       })
     })
 
     it('does not fail when fail-on-error is false', async () => {
-      jest.spyOn(core, 'getBooleanInput').mockImplementation((name: string) => {
+      core.getBooleanInput.mockImplementation((name: string) => {
         if (name === 'fail-on-error') return false
         if (name === 'debug') return false
         return false
@@ -182,7 +181,7 @@ describe('Main action', () => {
     })
 
     it('fails when fail-on-error is true', async () => {
-      jest.spyOn(core, 'getBooleanInput').mockImplementation((name: string) => {
+      core.getBooleanInput.mockImplementation((name: string) => {
         if (name === 'fail-on-error') return true
         if (name === 'debug') return false
         return false
@@ -198,14 +197,14 @@ describe('Main action', () => {
 
   describe('debug mode', () => {
     beforeEach(() => {
-      jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+      core.getInput.mockImplementation((name: string) => {
         if (name === 'auth-method') return 'oidc'
         return ''
       })
     })
 
     it('outputs debug info when debug is true', async () => {
-      jest.spyOn(core, 'getBooleanInput').mockImplementation((name: string) => {
+      core.getBooleanInput.mockImplementation((name: string) => {
         if (name === 'fail-on-error') return true
         if (name === 'debug') return true
         return false
