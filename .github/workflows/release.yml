@@ -88,3 +88,47 @@ jobs:
 
           # Push the version tag
           git push origin "v${VERSION}"
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          # Extract release notes from CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            # Extract the section for this version from CHANGELOG.md
+            # This assumes the changelog format: ## VERSION followed by content until next ##
+            RELEASE_NOTES=$(awk "/^## ${VERSION}/,/^## / {if (!/^## / || /^## ${VERSION}/) print}" CHANGELOG.md | sed '/^## /d' || echo "Release v${VERSION}")
+          else
+            RELEASE_NOTES="Release v${VERSION}"
+          fi
+
+          # Create GitHub Release
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes "$RELEASE_NOTES" \
+            --repo "${{ github.repository }}"
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          # Extract release notes from CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            # Extract the section for this version from CHANGELOG.md
+            # This assumes the changelog format: ## VERSION followed by content until next ##
+            RELEASE_NOTES=$(awk "/^## ${VERSION}/,/^## / {if (!/^## / || /^## ${VERSION}/) print}" CHANGELOG.md | sed '/^## /d' || echo "Release v${VERSION}")
+          else
+            RELEASE_NOTES="Release v${VERSION}"
+          fi
+
+          # Create GitHub Release
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes "$RELEASE_NOTES" \
+            --repo "${{ github.repository }}"
