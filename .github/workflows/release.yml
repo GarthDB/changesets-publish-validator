@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+# This workflow only runs on pushes to main, not on pull requests
+# It handles version bumps and releases when changesets are merged
+
 permissions:
   contents: write
   pull-requests: write
