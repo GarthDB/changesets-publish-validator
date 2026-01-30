@@ -58,13 +58,13 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Create the version tag (e.g., v1.0.1)
           git tag -a "v${VERSION}" -m "Release v${VERSION}"
-          
+
           # Get major version (e.g., v1)
           MAJOR_VERSION=$(echo "v${VERSION}" | cut -d. -f1)
-          
+
           # Update or create major version tag
           if git rev-parse "${MAJOR_VERSION}" >/dev/null 2>&1; then
             # Tag exists, update it
@@ -77,6 +77,6 @@ jobs:
             git tag -a "${MAJOR_VERSION}" -m "Release ${MAJOR_VERSION}"
             git push origin "${MAJOR_VERSION}"
           fi
-          
+
           # Push the version tag
           git push origin "v${VERSION}"
