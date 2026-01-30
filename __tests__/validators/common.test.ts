@@ -6,7 +6,8 @@
  * See: .github/workflows/test-validation.yml
  */
 
-import test, { type ExecutionContext } from 'ava'
+import test from 'ava'
+import type { ExecutionContext } from 'ava'
 
 // Common validator is primarily tested through integration tests
 // because fs/promises mocking with esmock is unreliable for edge cases.
