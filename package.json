@@ -40,7 +40,9 @@
     "package:watch": "npm run package -- --watch",
     "release:tag": "echo 'No npm publish needed for GitHub Action'",
     "test": "npx ava",
-    "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
+    "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package",
+    "pre-commit": "npm run format:check && npm run lint",
+    "prepare": "husky"
   },
   "license": "MIT",
   "dependencies": {
@@ -68,6 +70,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
     "esmock": "^2.7.3",
+    "husky": "^9.1.7",
     "make-coverage-badge": "^1.2.0",
     "prettier": "^3.8.1",
     "prettier-eslint": "^16.4.2",
