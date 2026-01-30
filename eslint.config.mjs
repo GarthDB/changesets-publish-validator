@@ -22,7 +22,8 @@ export default [
       '**/dist',
       '**/linter',
       '**/node_modules',
-      '**/.tsimp'
+      '**/.tsimp',
+      '**/__tests__'
     ]
   },
   ...compat.extends(
