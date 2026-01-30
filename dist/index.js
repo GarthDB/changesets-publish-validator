@@ -30483,6 +30483,5 @@ async function run() {
 /**
  * The entrypoint for the action.
  */
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
 run();
 //# sourceMappingURL=index.js.map
