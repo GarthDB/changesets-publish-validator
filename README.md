@@ -324,7 +324,8 @@ to `auth-method: token`.
 **Solution:** Either:
 
 1. Add `NPM_TOKEN` to your workflow and GitHub secrets, or
-2. Switch to OIDC: `auth-method: oidc`
+1. Switch to OIDC: `auth-method: oidc`
+
 </details>
 
 <details>
@@ -342,7 +343,7 @@ npx @changesets/cli init
 
 ## Development
 
-### Prerequisites
+### Development Prerequisites
 
 - Node.js 20+ (see `.node-version`)
 - npm 10+

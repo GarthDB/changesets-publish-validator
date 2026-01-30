@@ -10,7 +10,7 @@ MD013:
 
 # Ordered list item prefix
 MD029:
-  style: ordered  # Allow sequential numbering (1, 2, 3)
+  style: ordered # Allow sequential numbering (1, 2, 3)
 
 # Spaces after list markers
 MD030:
