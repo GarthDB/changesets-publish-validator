@@ -7,6 +7,10 @@ on:
 
 # This workflow only runs on pushes to main, not on pull requests
 # It handles version bumps and releases when changesets are merged
+#
+# IMPORTANT: For this workflow to create pull requests, you must enable
+# "Allow GitHub Actions to create and approve pull requests" in repository settings:
+# Settings > Actions > General > Workflow permissions
 
 permissions:
   contents: write
@@ -21,6 +25,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
