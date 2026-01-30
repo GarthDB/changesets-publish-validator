@@ -6,30 +6,33 @@
 import test, { type ExecutionContext } from 'ava'
 import esmock from 'esmock'
 
-test.serial('validateOidc passes validation with correct setup', async (t: ExecutionContext) => {
-  const { validateOidc } = await esmock(
-    '../../src/validators/oidc.js',
-    {},
-    {
-      '@actions/exec': {
-        getExecOutput: async () => ({
-          stdout: '11.6.2',
-          stderr: '',
-          exitCode: 0
-        })
+test.serial(
+  'validateOidc passes validation with correct setup',
+  async (t: ExecutionContext) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '11.6.2',
+            stderr: '',
+            exitCode: 0
+          })
+        }
       }
-    }
-  )
+    )
 
-  process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-  process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-  delete process.env.NPM_TOKEN
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+    delete process.env.NPM_TOKEN
 
-  const result = await validateOidc()
+    const result = await validateOidc()
 
-  t.true(result.valid)
-  t.is(result.errors.length, 0)
-})
+    t.true(result.valid)
+    t.is(result.errors.length, 0)
+  }
+)
 
 test.serial(
   'validateOidc returns error for npm version < 11.5.1',

@@ -106,13 +106,16 @@ test.serial(
   }
 )
 
-test.serial('validateToken accepts valid modern npm token', async (t: ExecutionContext) => {
-  process.env.NPM_TOKEN = 'npm_1234567890abcdefghijklmnopqrstuvwxyz'
-  delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+test.serial(
+  'validateToken accepts valid modern npm token',
+  async (t: ExecutionContext) => {
+    process.env.NPM_TOKEN = 'npm_1234567890abcdefghijklmnopqrstuvwxyz'
+    delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
 
-  const result = await validateToken()
+    const result = await validateToken()
 
-  t.true(result.valid)
-  t.is(result.errors.length, 0)
-  t.is(result.warnings.length, 0)
-})
+    t.true(result.valid)
+    t.is(result.errors.length, 0)
+    t.is(result.warnings.length, 0)
+  }
+)
