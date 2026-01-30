@@ -3,205 +3,286 @@
  * Adapted from changesets/action PR #562
  */
 
-import {
-  describe,
-  it,
-  expect,
-  jest,
-  beforeEach,
-  afterEach
-} from '@jest/globals'
-import { getExecOutput } from '@actions/exec'
-import * as core from '@actions/core'
-import { validateOidc } from '../../src/validators/oidc'
+import test from 'ava'
+import esmock from 'esmock'
 
-jest.mock('@actions/exec')
-jest.mock('@actions/core')
-
-// SKIP: Jest ESM mocking limitation - see ESM_MIGRATION.md
-// These tests require mocking @actions/exec which doesn't work with Jest v30 ESM
-describe.skip('OIDC validation', () => {
-  const originalEnv = process.env
-
-  beforeEach(() => {
-    jest.clearAllMocks()
-    process.env = { ...originalEnv }
-  })
-
-  afterEach(() => {
-    process.env = originalEnv
-  })
-
-  describe('validateOidc', () => {
-    it('passes validation with correct setup', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '11.6.2',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
-
-    it('returns error for npm version < 11.5.1', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '10.8.1',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-      expect(result.errors[0]).toContain('npm version 10.8.1 detected')
-      expect(result.errors[0]).toContain('npm 11.5.1+ required for OIDC')
-      expect(result.errors[0]).toContain('npm install -g npm@latest')
-    })
-
-    it('returns error for npm version 11.5.0 (edge case)', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '11.5.0',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(result.errors[0]).toContain('npm version 11.5.0 detected')
-    })
-
-    it('passes validation for npm 11.5.1 exactly', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '11.5.1',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
-
-    it('returns error for missing id-token permission', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '11.6.2',
-        stderr: '',
-        exitCode: 0
-      })
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) =>
-          e.includes('id-token: write permission not detected')
-        )
-      ).toBe(true)
-      expect(result.errors.some((e) => e.includes('permissions:'))).toBe(true)
-    })
-
-    it('returns error when NPM_TOKEN is set', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '11.6.2',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      process.env.NPM_TOKEN = 'secret-token'
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) =>
-          e.includes('NPM_TOKEN is set but auth-method is "oidc"')
-        )
-      ).toBe(true)
-    })
-
-    it('returns error when OIDC token request variable is missing', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '11.6.2',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) => e.includes('ACTIONS_ID_TOKEN_REQUEST_TOKEN'))
-      ).toBe(true)
-    })
-
-    it('handles npm version with leading/trailing whitespace', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '  11.6.2\n',
-        stderr: '',
-        exitCode: 0
-      })
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
-
-    it('returns error when npm command fails', async () => {
-      getExecOutput.mockRejectedValue(new Error('npm command not found'))
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-      delete process.env.NPM_TOKEN
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) => e.includes('Failed to check npm version'))
-      ).toBe(true)
-    })
-
-    it('collects multiple errors when multiple checks fail', async () => {
-      getExecOutput.mockResolvedValue({
-        stdout: '10.0.0',
-        stderr: '',
-        exitCode: 0
-      })
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
-      process.env.NPM_TOKEN = 'token'
-
-      const result = await validateOidc()
-
-      expect(result.valid).toBe(false)
-      expect(result.errors.length).toBeGreaterThan(1)
-    })
-  })
+test.beforeEach(() => {
+  // Clean up env
+  delete process.env.NPM_TOKEN
+  delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+  delete process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
 })
+
+test.serial('validateOidc passes validation with correct setup', async (t) => {
+  const { validateOidc } = await esmock(
+    '../../src/validators/oidc.js',
+    {},
+    {
+      '@actions/exec': {
+        getExecOutput: async () => ({
+          stdout: '11.6.2',
+          stderr: '',
+          exitCode: 0
+        })
+      }
+    }
+  )
+
+  process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+  process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+
+  const result = await validateOidc()
+
+  t.true(result.valid)
+  t.is(result.errors.length, 0)
+})
+
+test.serial(
+  'validateOidc returns error for npm version < 11.5.1',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '10.8.1',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+
+    const result = await validateOidc()
+
+    t.false(result.valid)
+    t.is(result.errors.length, 1)
+    t.true(result.errors[0].includes('npm version 10.8.1 detected'))
+    t.true(result.errors[0].includes('npm 11.5.1+ required for OIDC'))
+    t.true(result.errors[0].includes('npm install -g npm@latest'))
+  }
+)
+
+test.serial(
+  'validateOidc returns error for npm version 11.5.0 (edge case)',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '11.5.0',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+
+    const result = await validateOidc()
+
+    t.false(result.valid)
+    t.true(result.errors[0].includes('npm version 11.5.0 detected'))
+  }
+)
+
+test.serial(
+  'validateOidc passes validation for npm 11.5.1 exactly',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '11.5.1',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+
+    const result = await validateOidc()
+
+    t.true(result.valid)
+    t.is(result.errors.length, 0)
+  }
+)
+
+test.serial(
+  'validateOidc returns error for missing id-token permission',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '11.6.2',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+
+    const result = await validateOidc()
+
+    t.false(result.valid)
+    t.is(result.errors.length, 1)
+    t.true(result.errors[0].includes('ACTIONS_ID_TOKEN_REQUEST_URL is not set'))
+    t.true(result.errors[0].includes('id-token: write'))
+  }
+)
+
+test.serial('validateOidc returns error when NPM_TOKEN is set', async (t) => {
+  const { validateOidc } = await esmock(
+    '../../src/validators/oidc.js',
+    {},
+    {
+      '@actions/exec': {
+        getExecOutput: async () => ({
+          stdout: '11.6.2',
+          stderr: '',
+          exitCode: 0
+        })
+      }
+    }
+  )
+
+  process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+  process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+  process.env.NPM_TOKEN = 'npm_token123'
+
+  const result = await validateOidc()
+
+  t.false(result.valid)
+  t.true(
+    result.errors.some((e) =>
+      e.includes('NPM_TOKEN is set but OIDC mode is enabled')
+    )
+  )
+})
+
+test.serial(
+  'validateOidc returns error when OIDC token request variable is missing',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '11.6.2',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    delete process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+
+    const result = await validateOidc()
+
+    t.false(result.valid)
+    t.true(
+      result.errors.some((e) =>
+        e.includes('ACTIONS_ID_TOKEN_REQUEST_TOKEN is not set')
+      )
+    )
+  }
+)
+
+test.serial(
+  'validateOidc handles npm version with leading/trailing whitespace',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '  11.6.2\n',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+
+    const result = await validateOidc()
+
+    t.true(result.valid)
+    t.is(result.errors.length, 0)
+  }
+)
+
+test.serial('validateOidc returns error when npm command fails', async (t) => {
+  const { validateOidc } = await esmock(
+    '../../src/validators/oidc.js',
+    {},
+    {
+      '@actions/exec': {
+        getExecOutput: async () => ({
+          stdout: '',
+          stderr: 'command not found',
+          exitCode: 127
+        })
+      }
+    }
+  )
+
+  process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+  process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+
+  const result = await validateOidc()
+
+  t.false(result.valid)
+  t.true(result.errors.some((e) => e.includes('Failed to get npm version')))
+})
+
+test.serial(
+  'validateOidc collects multiple errors when multiple checks fail',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '10.8.1',
+            stderr: '',
+            exitCode: 0
+          })
+        }
+      }
+    )
+
+    delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+    process.env.NPM_TOKEN = 'npm_token123'
+
+    const result = await validateOidc()
+
+    t.false(result.valid)
+    t.true(result.errors.length >= 2)
+  }
+)

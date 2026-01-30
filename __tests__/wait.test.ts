@@ -1,24 +1,25 @@
 /**
  * Unit tests for src/wait.ts
  */
+import test from 'ava'
 import { wait } from '../src/wait.js'
 
-describe('wait.ts', () => {
-  it('Throws an invalid number', async () => {
-    const input = parseInt('foo', 10)
+test('wait throws an invalid number', async (t) => {
+  const input = parseInt('foo', 10)
 
-    expect(isNaN(input)).toBe(true)
+  t.true(isNaN(input))
 
-    await expect(wait(input)).rejects.toThrow('milliseconds is not a number')
+  await t.throwsAsync(async () => wait(input), {
+    message: 'milliseconds is not a number'
   })
+})
 
-  it('Waits with a valid number', async () => {
-    const start = new Date()
-    await wait(500)
-    const end = new Date()
+test('wait waits with a valid number', async (t) => {
+  const start = new Date()
+  await wait(500)
+  const end = new Date()
 
-    const delta = Math.abs(end.getTime() - start.getTime())
+  const delta = Math.abs(end.getTime() - start.getTime())
 
-    expect(delta).toBeGreaterThan(450)
-  })
+  t.true(delta > 450)
 })

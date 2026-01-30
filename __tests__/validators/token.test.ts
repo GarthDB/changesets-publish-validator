@@ -2,119 +2,117 @@
  * Tests for token validator
  */
 
-import {
-  describe,
-  it,
-  expect,
-  jest,
-  beforeEach,
-  afterEach
-} from '@jest/globals'
-import * as core from '@actions/core'
-import { validateToken } from '../../src/validators/token'
+import test from 'ava'
+import { validateToken } from '../../src/validators/token.js'
 
-jest.mock('@actions/core')
+test.beforeEach(() => {
+  // Save original env
+  delete process.env.NPM_TOKEN
+  delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+})
 
-describe('Token validation', () => {
-  const originalEnv = process.env
+test.serial(
+  'validateToken passes validation with valid NPM_TOKEN',
+  async (t) => {
+    process.env.NPM_TOKEN = 'npm_validtoken1234567890'
+    delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
 
-  beforeEach(() => {
-    jest.clearAllMocks()
-    process.env = { ...originalEnv }
-  })
+    const result = await validateToken()
 
-  afterEach(() => {
-    process.env = originalEnv
-  })
+    t.true(result.valid)
+    t.is(result.errors.length, 0)
+  }
+)
 
-  describe('validateToken', () => {
-    it('passes validation with valid NPM_TOKEN', async () => {
-      process.env.NPM_TOKEN = 'npm_validtoken1234567890'
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+test.serial(
+  'validateToken returns error when NPM_TOKEN is missing',
+  async (t) => {
+    delete process.env.NPM_TOKEN
 
-      const result = await validateToken()
+    const result = await validateToken()
 
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-    })
+    t.false(result.valid)
+    t.is(result.errors.length, 1)
+    t.true(
+      result.errors[0].includes('NPM_TOKEN environment variable is not set')
+    )
+    t.true(result.errors[0].includes('secrets.NPM_TOKEN'))
+  }
+)
 
-    it('returns error when NPM_TOKEN is missing', async () => {
-      delete process.env.NPM_TOKEN
+test.serial(
+  'validateToken returns error when NPM_TOKEN is empty',
+  async (t) => {
+    process.env.NPM_TOKEN = ''
 
-      const result = await validateToken()
+    const result = await validateToken()
 
-      expect(result.valid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-      expect(result.errors[0]).toContain(
-        'NPM_TOKEN environment variable is not set'
-      )
-      expect(result.errors[0]).toContain('secrets.NPM_TOKEN')
-    })
+    t.false(result.valid)
+    t.true(result.errors.some((e) => e.includes('NPM_TOKEN is set but empty')))
+  }
+)
 
-    it('returns error when NPM_TOKEN is empty', async () => {
-      process.env.NPM_TOKEN = ''
+test.serial(
+  'validateToken returns error when NPM_TOKEN is too short',
+  async (t) => {
+    process.env.NPM_TOKEN = 'short'
 
-      const result = await validateToken()
+    const result = await validateToken()
 
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) => e.includes('NPM_TOKEN is set but empty'))
-      ).toBe(true)
-    })
+    t.false(result.valid)
+    t.true(
+      result.errors.some((e) => e.includes('NPM_TOKEN appears to be invalid'))
+    )
+  }
+)
 
-    it('returns error when NPM_TOKEN is too short', async () => {
-      process.env.NPM_TOKEN = 'short'
+test.serial(
+  'validateToken returns warning when NPM_TOKEN does not start with npm_ prefix',
+  async (t) => {
+    process.env.NPM_TOKEN = 'legacy-token-1234567890'
 
-      const result = await validateToken()
+    const result = await validateToken()
 
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) => e.includes('NPM_TOKEN appears to be invalid'))
-      ).toBe(true)
-    })
+    t.true(result.valid)
+    t.is(result.warnings.length, 1)
+    t.true(result.warnings[0].includes('does not start with "npm_" prefix'))
+  }
+)
 
-    it('returns warning when NPM_TOKEN does not start with npm_ prefix', async () => {
-      process.env.NPM_TOKEN = 'legacy-token-1234567890'
+test.serial(
+  'validateToken returns warning when OIDC is available but using token',
+  async (t) => {
+    process.env.NPM_TOKEN = 'npm_validtoken1234567890'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
 
-      const result = await validateToken()
+    const result = await validateToken()
 
-      expect(result.valid).toBe(true)
-      expect(result.warnings).toHaveLength(1)
-      expect(result.warnings[0]).toContain('does not start with "npm_" prefix')
-    })
+    t.true(result.valid)
+    t.true(
+      result.warnings.some((w) => w.includes('Consider switching to OIDC'))
+    )
+  }
+)
 
-    it('returns warning when OIDC is available but using token', async () => {
-      process.env.NPM_TOKEN = 'npm_validtoken1234567890'
-      process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+test.serial(
+  'validateToken handles whitespace-only token as empty',
+  async (t) => {
+    process.env.NPM_TOKEN = '   \n\t  '
 
-      const result = await validateToken()
+    const result = await validateToken()
 
-      expect(result.valid).toBe(true)
-      expect(
-        result.warnings.some((w) => w.includes('Consider switching to OIDC'))
-      ).toBe(true)
-    })
+    t.false(result.valid)
+    t.true(result.errors.some((e) => e.includes('NPM_TOKEN is set but empty')))
+  }
+)
 
-    it('handles whitespace-only token as empty', async () => {
-      process.env.NPM_TOKEN = '   \n\t  '
+test.serial('validateToken accepts valid modern npm token', async (t) => {
+  process.env.NPM_TOKEN = 'npm_1234567890abcdefghijklmnopqrstuvwxyz'
+  delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
 
-      const result = await validateToken()
+  const result = await validateToken()
 
-      expect(result.valid).toBe(false)
-      expect(
-        result.errors.some((e) => e.includes('NPM_TOKEN is set but empty'))
-      ).toBe(true)
-    })
-
-    it('accepts valid modern npm token', async () => {
-      process.env.NPM_TOKEN = 'npm_1234567890abcdefghijklmnopqrstuvwxyz'
-      delete process.env.ACTIONS_ID_TOKEN_REQUEST_URL
-
-      const result = await validateToken()
-
-      expect(result.valid).toBe(true)
-      expect(result.errors).toHaveLength(0)
-      expect(result.warnings).toHaveLength(0)
-    })
-  })
+  t.true(result.valid)
+  t.is(result.errors.length, 0)
+  t.is(result.warnings.length, 0)
 })
