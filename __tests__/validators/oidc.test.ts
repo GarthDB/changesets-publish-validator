@@ -3,7 +3,8 @@
  * Adapted from changesets/action PR #562
  */
 
-import test, { type ExecutionContext } from 'ava'
+import test from 'ava'
+import type { ExecutionContext } from 'ava'
 import esmock from 'esmock'
 
 test.serial(

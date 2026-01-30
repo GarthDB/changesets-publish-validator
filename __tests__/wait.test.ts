@@ -1,7 +1,8 @@
 /**
  * Unit tests for src/wait.ts
  */
-import test, { type ExecutionContext } from 'ava'
+import test from 'ava'
+import type { ExecutionContext } from 'ava'
 import { wait } from '../src/wait.js'
 
 test('wait throws an invalid number', async (t: ExecutionContext) => {

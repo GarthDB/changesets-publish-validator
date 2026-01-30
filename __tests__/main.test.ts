@@ -2,7 +2,8 @@
  * Integration tests for main entry point
  */
 
-import test, { type ExecutionContext } from 'ava'
+import test from 'ava'
+import type { ExecutionContext } from 'ava'
 import esmock from 'esmock'
 
 test.beforeEach(() => {
