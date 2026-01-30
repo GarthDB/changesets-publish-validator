@@ -1,10 +1,10 @@
 /**
  * Unit tests for src/wait.ts
  */
-import test from 'ava'
+import test, { type ExecutionContext } from 'ava'
 import { wait } from '../src/wait.js'
 
-test('wait throws an invalid number', async (t) => {
+test('wait throws an invalid number', async (t: ExecutionContext) => {
   const input = parseInt('foo', 10)
 
   t.true(isNaN(input))
@@ -14,7 +14,7 @@ test('wait throws an invalid number', async (t) => {
   })
 })
 
-test('wait waits with a valid number', async (t) => {
+test('wait waits with a valid number', async (t: ExecutionContext) => {
   const start = new Date()
   await wait(500)
   const end = new Date()

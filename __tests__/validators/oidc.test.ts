@@ -3,7 +3,7 @@
  * Adapted from changesets/action PR #562
  */
 
-import test from 'ava'
+import test, { type ExecutionContext } from 'ava'
 import esmock from 'esmock'
 
 test.serial('validateOidc passes validation with correct setup', async (t) => {

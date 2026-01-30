@@ -2,7 +2,7 @@
  * Tests for token validator
  */
 
-import test from 'ava'
+import test, { type ExecutionContext } from 'ava'
 import { validateToken } from '../../src/validators/token.js'
 
 test.beforeEach(() => {
