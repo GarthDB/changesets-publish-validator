@@ -29,6 +29,7 @@
   },
   "scripts": {
     "bundle": "npm run format:write && npm run package",
+    "changeset:version": "npx changeset version",
     "ci-test": "npx ava",
     "coverage": "npx c8 --reporter=json-summary --reporter=text --reporter=lcov ava && npx make-coverage-badge --output-path ./badges/coverage.svg",
     "format:write": "npx prettier --write .",
@@ -37,6 +38,7 @@
     "local-action": "npx @github/local-action . src/main.ts .env",
     "package": "npx rimraf ./dist && npx rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
     "package:watch": "npm run package -- --watch",
+    "release:tag": "echo 'No npm publish needed for GitHub Action'",
     "test": "npx ava",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },

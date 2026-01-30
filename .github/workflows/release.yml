@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release:tag
+          version: npm run changeset:version
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Action
+        if: steps.changesets.outputs.published == 'true'
+        run: npm run bundle
+
+      - name: Commit Built Action
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist/
+          git commit -m "chore: build action for release" || exit 0
+          git push
+
+      - name: Create Release Tag
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create the version tag (e.g., v1.0.1)
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          
+          # Get major version (e.g., v1)
+          MAJOR_VERSION=$(echo "v${VERSION}" | cut -d. -f1)
+          
+          # Update or create major version tag
+          if git rev-parse "${MAJOR_VERSION}" >/dev/null 2>&1; then
+            # Tag exists, update it
+            git tag -d "${MAJOR_VERSION}" || true
+            git tag -a "${MAJOR_VERSION}" -m "Update ${MAJOR_VERSION} to v${VERSION}"
+            git push origin ":refs/tags/${MAJOR_VERSION}" || true
+            git push origin "${MAJOR_VERSION}" --force
+          else
+            # Tag doesn't exist, create it
+            git tag -a "${MAJOR_VERSION}" -m "Release ${MAJOR_VERSION}"
+            git push origin "${MAJOR_VERSION}"
+          fi
+          
+          # Push the version tag
+          git push origin "v${VERSION}"
