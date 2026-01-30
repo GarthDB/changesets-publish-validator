@@ -6,7 +6,7 @@
 import test from 'ava'
 import esmock from 'esmock'
 
-test.serial('validateOidc passes validation with correct setup', async t => {
+test.serial('validateOidc passes validation with correct setup', async (t) => {
   const { validateOidc } = await esmock(
     '../../src/validators/oidc.js',
     {},
@@ -31,37 +31,40 @@ test.serial('validateOidc passes validation with correct setup', async t => {
   t.is(result.errors.length, 0)
 })
 
-test.serial('validateOidc returns error for npm version < 11.5.1', async t => {
-  const { validateOidc } = await esmock(
-    '../../src/validators/oidc.js',
-    {},
-    {
-      '@actions/exec': {
-        getExecOutput: async () => ({
-          stdout: '10.8.1',
-          stderr: '',
-          exitCode: 0
-        })
+test.serial(
+  'validateOidc returns error for npm version < 11.5.1',
+  async (t) => {
+    const { validateOidc } = await esmock(
+      '../../src/validators/oidc.js',
+      {},
+      {
+        '@actions/exec': {
+          getExecOutput: async () => ({
+            stdout: '10.8.1',
+            stderr: '',
+            exitCode: 0
+          })
+        }
       }
-    }
-  )
+    )
 
-  process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
-  process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
-  delete process.env.NPM_TOKEN
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
+    process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'test-token'
+    delete process.env.NPM_TOKEN
 
-  const result = await validateOidc()
+    const result = await validateOidc()
 
-  t.false(result.valid)
-  t.is(result.errors.length, 1)
-  t.true(result.errors[0].includes('npm version 10.8.1 detected'))
-  t.true(result.errors[0].includes('npm 11.5.1+ required for OIDC'))
-  t.true(result.errors[0].includes('npm install -g npm@latest'))
-})
+    t.false(result.valid)
+    t.is(result.errors.length, 1)
+    t.true(result.errors[0].includes('npm version 10.8.1 detected'))
+    t.true(result.errors[0].includes('npm 11.5.1+ required for OIDC'))
+    t.true(result.errors[0].includes('npm install -g npm@latest'))
+  }
+)
 
 test.serial(
   'validateOidc returns error for npm version 11.5.0 (edge case)',
-  async t => {
+  async (t) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -89,7 +92,7 @@ test.serial(
 
 test.serial(
   'validateOidc passes validation for npm 11.5.1 exactly',
-  async t => {
+  async (t) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -117,7 +120,7 @@ test.serial(
 
 test.serial(
   'validateOidc handles npm version with leading/trailing whitespace',
-  async t => {
+  async (t) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
@@ -145,7 +148,7 @@ test.serial(
 
 test.serial(
   'validateOidc collects multiple errors when multiple checks fail',
-  async t => {
+  async (t) => {
     const { validateOidc } = await esmock(
       '../../src/validators/oidc.js',
       {},
