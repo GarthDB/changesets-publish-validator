@@ -3,8 +3,8 @@
 Validate npm publishing prerequisites for changesets workflows _before_
 publishing, with actionable error messages.
 
-[![GitHub Super-Linter](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/ci.yml/badge.svg)
+[![GitHub Super-Linter](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/linter.yml/badge.svg)](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/linter.yml)
+[![CI](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/ci.yml)
 [![Check dist/](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/check-dist.yml/badge.svg)](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/check-dist.yml)
 [![CodeQL](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/GarthDB/changesets-publish-validator/actions/workflows/codeql-analysis.yml)
 
