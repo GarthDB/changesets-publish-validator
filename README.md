@@ -324,7 +324,7 @@ to `auth-method: token`.
 **Solution:** Either:
 
 1. Add `NPM_TOKEN` to your workflow and GitHub secrets, or
-1. Switch to OIDC: `auth-method: oidc`
+2. Switch to OIDC: `auth-method: oidc`
 
 </details>
 
