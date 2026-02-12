@@ -57,7 +57,7 @@
   "dependencies": {
     "@actions/core": "^3.0.0",
     "@actions/exec": "^1.1.1",
-    "semver": "^7.6.0"
+    "semver": "^7.7.4"
   },
   "devDependencies": {
     "@ava/typescript": "^6.0.0",
